@@ -62,40 +62,8 @@ public class Imagereader {
         file.close();
     }
 
-    public static void run() {
-        String window_name = "demo";
-        System.out.println("\n"
-                + " Zoom In-Out demo    \n"
-                + "------------------   \n"
-                + " * [i] -> Zoom [i]n  \n"
-                + " * [o] -> Zoom [o]ut \n"
-                + " * [ESC] -> Close program \n");
-        String filename = "003_10357.tif";
-        // Load the image
-        Mat src = Imgcodecs.imread(filename);
-        // Check if image is loaded fine
-        if (src.empty()) {
-            System.out.println("Error opening image!");
-            System.out.println("Program Arguments: [image_name -- default ../data/chicky_512.png] \n");
-            System.exit(-1);
-
-        }
-        while (true) {
-            HighGui.imshow(window_name, src);
-            char c = (char) HighGui.waitKey(0);
-            c = Character.toLowerCase(c);
-            if (c == 27) {
-                break;
-            } else if (c == 'i') {
-                Imgproc.pyrUp(src, src, new Size(src.cols() * 2, src.rows() * 2));
-                System.out.println("** Zoom In: Image x 2");
-            } else if (c == 'o') {
-                Imgproc.pyrDown(src, src, new Size(src.cols() / 2, src.rows() / 2));
-                System.out.println("** Zoom Out: Image / 2");
-            }
-        }
-        System.exit(0);
-    }
+   
+      
 
     //Checks all the images if it contains asked kkj coordinates. Path is to HD.
     public static List<String> fileNames() {
@@ -115,6 +83,8 @@ public class Imagereader {
         return result;
     }
     
+    
+    // Loops all trees and extracts data
     public void loop() throws Exception{
         
          List<String> result = fileNames();
@@ -181,7 +151,7 @@ public class Imagereader {
         System.out.println(aa);
 
         DEM_elevation dem = new DEM_elevation();
-        dem.readRasterIsenburg(demName);
+        dem.readRaster(demName);
 
         double start_x = lidar.getFirstEchoesMinX();
         double start_y = lidar.getFirstEchoesMaxY();
@@ -331,9 +301,7 @@ public class Imagereader {
 
     }
 
-    public static void getThem(Mat img, double x, double y) {
-
-    }
+   
 
     // Return imagecoordinates in 3D-space with DEM, needs only xy-coordinate in kkj
     public static int[] getImageCoordinates(Image_HDR header, double x, double y) throws IOException {
@@ -393,6 +361,10 @@ public class Imagereader {
         String sa4 = ("Zenith: " + Math.round((header.getZenithAngle(col, row, 0.42))));
         String sa5 = ("Sun elevation: " + Math.round(header.getSunElevation()));
         Mat croppedImage = cropImage(col, row, ww, wh, img);
+        
+        //Package changed
+        
+        
         // Tekstin tulostaminen kuvan vasempaan yläreunaan
         // Imgproc.putText(croppedImage, sa1, new Point(30, 30),
         //          Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
@@ -428,7 +400,9 @@ public class Imagereader {
         String sa4 = ("Zenith: " + Math.round((header.getZenithAngle(col, row, 0.42))));
         String sa5 = ("Sun elevation: " + Math.round(header.getSunElevation()));
         Mat croppedImage = cropImage(col, row, ww, wh, img);
-        // Tekstin tulostaminen kuvan vasempaan yläreunaan
+        
+        // Package changed
+        
         //Imgproc.putText(croppedImage, sa1, new Point(30, 30),
         //    Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
         // Imgproc.putText(croppedImage, sa2, new Point(30, 60),

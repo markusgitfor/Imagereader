@@ -15,7 +15,7 @@ public class DEM_elevation {
 
     }
 
-    public void readRasterIsenburg(String hdrFile) throws FileNotFoundException, IOException {
+    public void readRaster(String hdrFile) throws FileNotFoundException, IOException {
 
         double llCornerX, llCornerY, noDataVal, pixelSize;
         int width, height;

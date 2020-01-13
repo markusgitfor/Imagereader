@@ -9,9 +9,9 @@ public class LidarInfo{
 
     public double gpsTime;
     public byte pulseCount;
-    public Point3D[] returns; // 0 = last; 1 = 3rd; 2 = 2nd; 3 = 1st
-    public int[] intensity; // 0 = last; 1 = 3rd; 2 = 2nd; 3 = 1st
-    public double[] range; // 0 = last; 1 = 3rd; 2 = 2nd; 3 = 1st
+    public Point3D[] returns; // 0 = 4th echo; 1 = 3th echo; 2 = 2nd echo; 3 = 1st echo
+    public int[] intensity; // 0 = 4th echo; 1 = 3th echo; 2 = 2nd echo; 3 = 1st echo
+    public double[] range; // 0 = 4th echo; 1 = 3th echo; 2 = 2nd echo; 3 = 1st echo
     public double roll;
     public double pitch;
     public double heading;
@@ -40,23 +40,5 @@ public class LidarInfo{
         return z;
     }
 
-    @Override
-    public String toString() {
-        String textout = "";
-
-        textout += gpsTime + "," + pulseCount + ","
-                + returns[0].getX() + "," + returns[0].getY() + "," + returns[0].getZ() + ","
-                + returns[1].getX() + "," + returns[1].getY() + "," + returns[1].getZ() + ","
-                + returns[2].getX() + "," + returns[2].getY() + "," + returns[2].getZ() + ","
-                + returns[3].getX() + "," + returns[3].getY() + "," + returns[3].getZ() + ","
-                + intensity[0] + "," + intensity[1]
-                + "," + intensity[2] + "," + intensity[3] + ","
-                + range[0] + "," + range[1] + "," + range[2] + ","
-                + range[3] + "," + roll + "," + pitch
-                + "," + heading + "," + angle + "," + poslidar.getX() + "," + poslidar.getY()
-                + "," + poslidar.getZ() + "," + stripNum + "," + syncBit
-                + "," + res1 + "," + res2 + "," + res3;
-
-        return textout;
-    }
+    
 }
