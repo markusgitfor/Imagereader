@@ -2,10 +2,8 @@ package imagereader;
 
 /*
 Contains data structure from one LiDAR pulse
-*/
-public class LidarInfo{
-    
-  
+ */
+public class LidarInfo {
 
     public double gpsTime;
     public byte pulseCount;
@@ -32,13 +30,10 @@ public class LidarInfo{
         this.dist = 0;
 
     }
-    
-   
 
     public double getZ0() {
         double z = (this.returns[0].getZ());
         return z;
     }
 
-    
 }

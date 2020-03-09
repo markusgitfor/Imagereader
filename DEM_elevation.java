@@ -9,7 +9,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class DEM_elevation {
-    private double [] [] dem;
+
+    private double[][] dem;
 
     public DEM_elevation() {
 
@@ -28,7 +29,7 @@ public class DEM_elevation {
         llCornerY = Double.parseDouble(hdrIn.next().trim());
         pixelSize = Double.parseDouble(hdrIn.next().trim());
         noDataVal = Double.parseDouble(hdrIn.next().trim());
-        
+
         //dataFile = hdrIn.next().trim();
         dataFile = "hyytiala_DEM_2010.bin";
         hdrIn.close();
@@ -54,7 +55,7 @@ public class DEM_elevation {
 
     }
 
-    public double getElevation(double x_kkj, double y_kkj) throws IOException{
+    public double getElevation(double x_kkj, double y_kkj) throws IOException {
 
         double[] xy = coordinate_transform(x_kkj, y_kkj);
 

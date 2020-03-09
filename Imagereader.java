@@ -24,6 +24,10 @@ import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class Imagereader {
 
@@ -32,12 +36,31 @@ public class Imagereader {
     }
 
     public static void main(String[] args) throws IOException, Exception {
-        
-        fileNames();
-        
-        create_ortho2("/media/markus/Ubuntu_Markus/Kuvat/Modified_headers_for_CIR_LVL3/2012_001_10375.hdr","", "052_098.bin", "Hyytiala_DEM_2010.hdr");
-        writeTxt("lidardata.txt", "");
 
+        // fileNames();
+        Mat img = Imgcodecs.imread("/media/markus/Ubuntu_Markus/Kuvat/Lvl2/Images/10068/Lvl02-10068-Pan.tif", Imgcodecs.IMREAD_UNCHANGED);
+        Imgcodecs.imwrite("/media/markus/Ubuntu_Markus/Kuvat/Lvl2/Images/10064/Lvl02-10068-Pan.ppm", img);
+        // Mat img2 = Core.
+        // boolean a = Imgcodecs.haveImageReader("/media/markus/Ubuntu_Markus/Kuvat/Lvl2/Images/10064/Lvl02-10064-Col_test.tif");
+        //  System.out.println(img.channels());
+        //Core.merge(lista, img);
+        //  if (img.empty()) {
+        //      System.out.println("nooooo!!");
+        //   }
+        //Core.rotate(img, img, Core.ROTATE_90_COUNTERCLOCKWISE);
+        // double[] c = img.get(2571, 2323);
+        // System.out.println(Arrays.toString(c));
+        // System.out.println(img.toString());
+        //Core.flip(img, img, 0);
+        //printImage( img, " koira");
+        //Imgcodecs.imwrite("testit.tif", img);
+        //create_ortho2("/media/markus/Ubuntu_Markus/Kuvat/Modified_headers_for_CIR_LVL3/2012_001_10486.hdr", "", "052_098.bin", "Hyytiala_DEM_2010.hdr", "vj_suo_ortho_10485.tif");
+        // writeTxt("lidardata.txt", "");
+        //readTrees();
+        //lidarfileNames();
+       // writeTxtLoop("lidar_testi.txt");
+        //loop2();
+        
         System.exit(0);
 
     }
@@ -61,18 +84,51 @@ public class Imagereader {
         }
         file.close();
     }
+    
+    public static void writeTxtLoop(String filename) throws Exception {
 
-   
-      
+        PrintWriter file = new PrintWriter(filename);
+        file.println("X,Y,Z");
+        List<String> ll = lidarfileNames();
 
-    //Checks all the images if it contains asked kkj coordinates. Path is to HD.
-    public static List<String> fileNames() {
-        String end = ".hdr";
+        HyytialaCoordinateConversion m = new HyytialaCoordinateConversion();
+        int i = 0;
+
+        for (String name : ll) {
+            if (i % 200 == 0) {
+                file.close();
+                String nmn = i + filename;
+                file = new PrintWriter(nmn);
+            }
+
+            LidarReader n = new LidarReader(name);
+            n.readLidarBinFile();
+            ArrayList<LidarInfo> lista = n.getLidar();
+            for (LidarInfo point : lista) {
+                for (int a = 0; a < point.returns.length; a++) {
+                    Point3D p = point.returns[a];
+                    Point3D pointUTM = m.kkjToUtm(p);
+                    file.println(pointUTM.getX() + "," + pointUTM.getY() + "," + pointUTM.getZ());
+
+                }
+               
+
+            }
+            i++;
+        }
+        file.close();
+
+    }
+    
+     public static List<String> lidarfileNames() {
+        String PAN = "/media/markus/Ubuntu_Markus/LiDAR_2012/";
+
+        String end = ".bin";
         List<String> result = new ArrayList<>();
-        try (Stream<Path> walk = Files.walk(Paths.get("/media/markus/Ubuntu_Markus/Kuvat/Modified_headers_for_CIR_LVL3/"))) {
+        try (Stream<Path> walk = Files.walk(Paths.get(PAN))) {
 
             result = walk.map(x -> x.toString())
-                    .filter(f -> f.endsWith(end)).collect(Collectors.toList());
+                    .filter(f -> f.endsWith(end)).filter(a -> !a.contains("_256")).collect(Collectors.toList());
 
             result.forEach(System.out::println);
             System.out.println(result.size());
@@ -82,38 +138,225 @@ public class Imagereader {
         }
         return result;
     }
-    
-    
-    // Loops all trees and extracts data
-    public void loop() throws Exception{
-        
-         List<String> result = fileNames();
-         
-         List<TreeAttributes> lista = new ArrayList<>(); // tähän funktio joka lukee tiedoston .csv
-         
-         PrintWriter file = new PrintWriter("output.txt");
-         
-         
-         for(int i = 0; i < lista.size(); i++){
-             
-             for(String name : result){
-              Image_HDR header = new Image_HDR(name);
-              header.readHDR(name);
-              Mat img = Imgcodecs.imread(header.getFile());
-              //double[] xy = header.r_transform_ground_to_pixel(x, y, z);
-          //    double row = xy[1];
-          //    double col = xy[0];
-              file.println("tiedot puista");
-             
-         }
-             
-         }
-         file.close();
-         
-         
-     
 
+    //Checks all the images if it contains asked kkj coordinates. Path is to HD.
+    public static List<String> fileNames() {
+        String PAN = "/media/markus/Ubuntu_Markus/Kuvat/Lvl2/PAN_HDR/";
+        String RGBN = "/media/markus/Ubuntu_Markus/Kuvat/Lvl2/RGBN_HDR/";
+        
+        String end = ".hdr";
+        List<String> result = new ArrayList<>();
+        try (Stream<Path> walk = Files.walk(Paths.get(PAN))) {
+
+            result = walk.map(x -> x.toString())
+                    .filter(f -> f.endsWith(end)).collect(Collectors.toList());
+
+            //result.forEach(System.out::println);
+            //System.out.println(result.size());
+            return result;
+        } catch (IOException e) {
+            System.out.println("Error");
+        }
+        return result;
+    }
+
+    public static ArrayList<Tree> readTrees() {
+
+        String csvFile = "MARV4_data_for_aerial.csv";
+        String line = "";
+        String cvsSplitBy = ",";
+
+        int i = 0;
+        
+        ArrayList<Tree> lista = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+
+            while ((line = br.readLine()) != null) {
+                if (i == 0) {
+                    i++;
+
+                } else {
+                    String[] tree = line.split(cvsSplitBy);
+                    double x = Double.valueOf(tree[2]);
+                    double y = Double.valueOf(tree[3]);
+                    double h = Double.valueOf(tree[5]);
+                    int sp = Integer.valueOf(tree[4]);
+                    lista.add(new Tree(x,y,h,sp));
+                    //System.out.println(h + " " + sp);
+                }
+
+            }
+         
+
+        } catch (IOException e) {
+        }  
+        return lista;
+
+    }
+    public static void loop2() throws Exception {
+
+        DEM_elevation dem = new DEM_elevation();
+        dem.readRaster("Hyytiala_DEM_2010.hdr");
+
+        List<String> result = fileNames();
+
+        //List<TreeAttributes> lista = new ArrayList<>(); // tähän funktio joka lukee tiedoston .csv
+        PrintWriter file = new PrintWriter("PINE_PAN16.txt");
+        file.println("Kohde,X,Y,Z,Kuva,Katseluzeniitti,Auringokorkeus,Aurinkoatsimuutti,Katseluatsimuutti,Atsimuuttiero,PAN16");
+
+        ArrayList<Tree> lista = readTrees();
+
+        for (String name : result) {
+            Image_HDR header = new Image_HDR(name);
+            header.readHDR(name);
+            Mat img = Imgcodecs.imread(header.getFile(), Imgcodecs.IMREAD_UNCHANGED);
+            Core.rotate(img, img, Core.ROTATE_90_COUNTERCLOCKWISE);
+            for (Tree puu : lista) {
+                double x = puu.x;
+                double y = puu.y;
+                double zz = puu.height;
+
+                double z = dem.getElevation(x, y) + zz;
+                int kohde = puu.sp;
+                double[] xy = header.r_transform_ground_to_pixel(x, y, z);
+                double row = xy[1];
+
+                double col = xy[0];
+
+                if (row > 1 & row < header.getHeight()-1 & col > 1 & col < header.getWidth()-1) {
+                    double az = header.getViewAzimuth(x, y);
+
+                    row = Math.ceil(row)-1;
+                    col = Math.ceil(col)-1;
+
+                    //double[] value = img.get((int) row, (int) col);
+                    //System.out.println(Arrays.toString(value));
+                    int channel = 0; // 0 PAN, 0 BLUE, jne
+                    double avg = Math.round(meanPAN(img, (int) row, (int) col, channel));
+
+                    // Angles 
+                    double[] results = header.viewIllumination(x, y, z);
+                    double view_zenith, azimuth_difference, sun_azimuth, sun_elevation, view_azimuth;
+                    sun_azimuth = results[0];
+                    sun_elevation = results[1];
+                    view_zenith = results[2];
+                    azimuth_difference = results[3];
+
+                    
+                    file.println(kohde + "," + x + "," + y + "," + z + "," + header.getCode() + "," + view_zenith + ","
+                            + sun_elevation + "," + sun_azimuth + "," + header.getViewAzimuth(x, y) + "," + azimuth_difference + "," + avg);
+                }
+
+            }
+             img.release();
+        }
        
+
+        file.close();
+    }
+
+
+    // Loops all trees and extracts data
+    public static void loop() throws Exception {
+        
+        DEM_elevation dem = new DEM_elevation();
+        dem.readRaster("Hyytiala_DEM_2010.hdr");
+
+        List<String> result = fileNames();
+
+        //List<TreeAttributes> lista = new ArrayList<>(); // tähän funktio joka lukee tiedoston .csv
+        PrintWriter file = new PrintWriter("PINE_PAN16.txt");
+        file.println("Kohde,X,Y,Z,Kuva,Katseluzeniitti,Auringokorkeus,Aurinkoatsimuutti,Katseluatsimuutti,Atsimuuttiero,PAN16");
+        double x = 2516117.6;
+        double y = 6860666.51;
+        double zz = 30;
+       
+        double z = dem.getElevation(x, y) + zz;
+        String kohde = "Pine";
+
+        int sum = 0;
+
+        for (String name : result) {
+            Image_HDR header = new Image_HDR(name);
+            header.readHDR(name);
+            double[] xy = header.r_transform_ground_to_pixel(x, y, z);
+            double row = xy[1];
+            System.out.println(row);
+            double col = xy[0];
+            System.out.println(col);
+
+            if (row > 0 & row < header.getHeight() & col > 0 & col < header.getWidth()) {
+                double az = header.getViewAzimuth(x, y);
+
+                Mat img = Imgcodecs.imread(header.getFile(), Imgcodecs.IMREAD_UNCHANGED);
+                if (img.empty()) {
+                    System.out.println("Kuva oli tyhjä");
+                }
+                Core.rotate(img, img, Core.ROTATE_90_COUNTERCLOCKWISE);
+
+                row = Math.rint(row);
+                col = Math.rint(col);
+
+                double[] value = img.get((int) row, (int) col);
+                System.out.println(Arrays.toString(value));
+                int channel = 0; // 0 PAN, 0 BLUE, jne
+                double avg = Math.round(meanPAN(img, (int) row, (int) col, channel));
+
+                // Angles 
+                double[] results = header.viewIllumination(x, y, z);
+                double view_zenith, azimuth_difference, sun_azimuth, sun_elevation, view_azimuth;
+                sun_azimuth = results[0];
+                sun_elevation = results[1];
+                view_zenith = results[2];
+                azimuth_difference = results[3];
+
+                img.release();
+                file.println(kohde + "," + x + "," + y + "," + z + "," + header.getCode() + "," + view_zenith + ","
+                        + sun_elevation + "," + sun_azimuth + "," + header.getViewAzimuth(x, y) + "," + azimuth_difference + "," + avg);
+
+                sum++;
+
+            }
+        }
+        System.out.println(sum);
+
+        file.close();
+    }
+
+    public static double meanPAN(Mat img, int col, int row, int ch) {
+
+        double sum = 0;
+
+        double[] a = img.get(col, row);
+        sum += a[ch];
+
+        double[] b = img.get(col - 1, row - 1);
+        sum += b[ch];
+
+        double[] c = img.get(col + 1, row + 1);
+        sum += c[ch];
+
+        double[] d = img.get(col - 1, row + 1);
+        sum += d[ch];
+
+        double[] e = img.get(col, row - 1);
+        sum += e[ch];
+
+        double[] f = img.get(col, row + 1);
+        sum += f[ch];
+
+        double[] g = img.get(col + 1, row);
+        sum += g[ch];
+
+        double[] h = img.get(col + 1, row - 1);
+        sum += h[ch];
+
+        double[] i = img.get(col - 1, row);
+        sum += i[ch];
+
+        return sum / 9.0;
+
     }
 
     // Transforms kkj coordinates to utm, because of the DEM-coordinates
@@ -124,6 +367,16 @@ public class Imagereader {
 
         return new double[]{utm_x, utm_y};
     }
+    
+    public static double[] coordinate_transform_reverse(double x_utm, double y_utm) {
+
+        double kkj_x = -0.04614190132 * y_utm + 0.9990901664 * x_utm + 2474938.474;
+        double kkj_y = 0.9990949702 * y_utm + 0.04615302083 * x_utm - 10341.1406;
+
+        return new double[]{kkj_x, kkj_y};
+    }
+    
+    
 
     // Returns DEM-coordinates from kkj-coordinates
     public static int[] dem_coordinates(double x_kkj, double y_kkj) {
@@ -135,7 +388,7 @@ public class Imagereader {
         return new int[]{dem_x, dem_y};
     }
 
-    public static void create_ortho2(String headerName, String imageName, String lidarName, String demName) throws IOException {
+    public static void create_ortho2(String headerName, String imageName, String lidarName, String demName, String outputName) throws IOException {
 
         double time1 = System.currentTimeMillis();
 
@@ -153,11 +406,21 @@ public class Imagereader {
         DEM_elevation dem = new DEM_elevation();
         dem.readRaster(demName);
 
-        double start_x = lidar.getFirstEchoesMinX();
-        double start_y = lidar.getFirstEchoesMaxY();
 
-        double x_length = lidar.getFirstEchoesMaxX() - start_x;
-        double y_length = start_y - lidar.getFirstEchoesMinY();
+        //double start_x = lidar.getFirstEchoesMinX();
+        //double start_y = lidar.getFirstEchoesMaxY();
+        double[] a = coordinate_transform_reverse(358715,6857780);
+        double start_x = a[0];
+        double start_y = a[1];
+
+        //double x_length = lidar.getFirstEchoesMaxX() - start_x;
+       // double y_length = start_y - lidar.getFirstEchoesMinY();
+        
+       double[] kk = coordinate_transform_reverse(358819,6857601);
+        
+        double x_length = kk[0] - start_x;
+        double y_length = start_y - kk[1];
+        
 
         System.out.println(x_length);
         System.out.println(y_length);
@@ -202,19 +465,21 @@ public class Imagereader {
         System.out.println("Orthoimage is ready now");
         System.out.println("Process took: " + ((time2 - time1) / 1000) + " seconds");
 
-        PrintWriter file = new PrintWriter("ortho2.tfw");
+        PrintWriter file = new PrintWriter("Line1_11001_8334_2515700_6856900_3300_2500_0.3.tfw");
         HyytialaCoordinateConversion m = new HyytialaCoordinateConversion();
-        Point3D point = new Point3D(start_x, start_y, 0.0);
-        Point3D pointUTM = m.kkjToUtm(point);
+        Point3D point = new Point3D(2515700, 6856900+(8334*0.3), 0.0);
+        Point3D pointUTM = point;
         file.println(grid_size);
         file.println(0);
         file.println(0);
         file.println(-grid_size);
+        System.out.println(pointUTM.getX());
+        System.out.println(pointUTM.getY());
         file.println(pointUTM.getX());
         file.println(pointUTM.getY());
         file.close();
 
-        Imgcodecs.imwrite("ortho2.tif", ortho);
+        Imgcodecs.imwrite(outputName, ortho);
 
     }
 
@@ -301,8 +566,6 @@ public class Imagereader {
 
     }
 
-   
-
     // Return imagecoordinates in 3D-space with DEM, needs only xy-coordinate in kkj
     public static int[] getImageCoordinates(Image_HDR header, double x, double y) throws IOException {
         DEM_elevation xx = new DEM_elevation();
@@ -358,13 +621,11 @@ public class Imagereader {
         String sa1 = ("Red_band: " + rgb[0]);
         String sa2 = ("Green_band: " + rgb[1]);
         String sa3 = ("Blue_band: " + rgb[2]);
-        String sa4 = ("Zenith: " + Math.round((header.getZenithAngle(col, row, 0.42))));
+        //String sa4 = ("Zenith: " + Math.round((header.getZenithAngle(col, row, 0.42))));
         String sa5 = ("Sun elevation: " + Math.round(header.getSunElevation()));
         Mat croppedImage = cropImage(col, row, ww, wh, img);
-        
+
         //Package changed
-        
-        
         // Tekstin tulostaminen kuvan vasempaan yläreunaan
         // Imgproc.putText(croppedImage, sa1, new Point(30, 30),
         //          Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
@@ -376,7 +637,6 @@ public class Imagereader {
         //         Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
         //  Imgproc.putText(croppedImage, sa5, new Point(30, 150),
         //         Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
-
         String name = "Cropped image";
 
         printImage(croppedImage, name);
@@ -397,12 +657,11 @@ public class Imagereader {
         String sa1 = ("Red_band: " + rgb[0]);
         String sa2 = ("Green_band: " + rgb[1]);
         String sa3 = ("Blue_band: " + rgb[2]);
-        String sa4 = ("Zenith: " + Math.round((header.getZenithAngle(col, row, 0.42))));
+        //String sa4 = ("Zenith: " + Math.round((header.getZenithAngle(col, row, 0.42))));
         String sa5 = ("Sun elevation: " + Math.round(header.getSunElevation()));
         Mat croppedImage = cropImage(col, row, ww, wh, img);
-        
+
         // Package changed
-        
         //Imgproc.putText(croppedImage, sa1, new Point(30, 30),
         //    Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
         // Imgproc.putText(croppedImage, sa2, new Point(30, 60),
@@ -413,7 +672,6 @@ public class Imagereader {
         //   Core.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 3);
         // Imgproc.putText(croppedImage, sa5, new Point(30, 150),
         //   Core.F, 1, new Scalar(0, 0, 0), 3);
-
         String name = "Cropped image";
 
         printImage(croppedImage, name);

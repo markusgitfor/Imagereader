@@ -8,6 +8,8 @@ import java.io.File;
 import java.util.Scanner;
 import org.opencv.core.Mat;
 
+ 
+
 public class Image_HDR {
     
     private String source;
@@ -50,7 +52,8 @@ public class Image_HDR {
     private int additheight;
 
    
- //HDR-file object
+
+    //HDR-file object
     public Image_HDR(String filename) {
         this.source = filename;
 
@@ -104,6 +107,10 @@ public class Image_HDR {
         }
     }
     
+    public int getCode(){
+        return this.imagecode;
+    }
+    
    
     
 //Affine tranformation from imagecoordinates to cameracoordinates
@@ -117,28 +124,77 @@ public class Image_HDR {
 
     }
     // returns images sun_azimuth in degrees
-    public double getAzimuth() {
-        return this.sun_azimuth * 180 / Math.PI; 
+    public double getSunAzimuth() {
+        return Math.toDegrees(sun_azimuth); 
     }
     // returns images sun_elevation in degrees
     public double getSunElevation() {
-        return this.sun_elevation * 180 / Math.PI; 
+        return Math.toDegrees(sun_elevation); 
+    }
+    // return view zenith !!!!TOIMII
+    public double getViewAzimuth(double x, double y){
+        double a = Math.toDegrees(Math.atan2(xo - x, yo - y));
+        return 90- a;
+    }
+    
+
+    
+    
+    
+    public double[] viewIllumination(double xsol, double ysol, double zsol){
+        double Fii = Math.toRadians((90 - Math.toDegrees(this.sun_azimuth)));
+        double Theta = Math.toRadians((90 - Math.toDegrees(this.sun_elevation)));
+        Point3D SunV = new Point3D();
+        Point3D CamV = new Point3D();
+        Point3D plumb = new Point3D();
+        Point3D t1 = new Point3D();
+        Point3D t2 = new Point3D();
+        SunV.x = 1 * Math.sin(Theta) * Math.cos(Fii); SunV.y = 1 * Math.sin(Theta) * Math.sin(Fii);  SunV.z = 1 * Math.cos(Theta);
+        CamV.x = this.xo - xsol;   CamV.y = this.yo - ysol;  CamV.z = this.zo - zsol;
+        t1.x = SunV.x; t1.y = SunV.y; t1.z = 0;
+        t2.x = CamV.x; t2.y = CamV.y; t2.z = 0;
+        plumb.x = 0; plumb.y = 0; plumb.z = 1;
+        double view_zenith = Math.toDegrees(vector_angle(plumb, CamV));
+        double azimuth_difference = Math.toDegrees(vector_angle(t1, t2));
+        double[] results = new double[4];
+        results[0] = Math.toDegrees(Fii); // Sun azimuth
+        results[1] = Math.toDegrees(Theta); // Sun elevation
+        results[2] =  view_zenith; // View zenith
+        results[3] = azimuth_difference; // Azimuth difference
+        return results;
+        
+        
+        
+        
+    }
+    
+    public double vector_angle(Point3D vec1, Point3D vec2){
+        double vector_angle = Math.acos((vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z)
+                / (vector_length(vec1) * vector_length(vec2)));
+        
+        return vector_angle;
+        
+        
+        
+        
+         }
+
+    public double vector_length(Point3D vector) {
+        double vector_length = Math.pow((Math.pow(vector.x, 2) + Math.pow(vector.y, 2) + Math.pow(vector.z, 2)), 0.5);
+        return vector_length;
     }
 
-    public double getCartoAzimuth(double x, double y) {
-        return 180 / Math.PI * Math.atan2(y - this.yo, x - this.xo);
-    }
-    //Calculates zenith angle to a point in image, needs pixel size in meters as parameter
-    public double getZenithAngle(int x, int y, double px_size){
-        double xc = this.width/2;
-        double yc = this.height/2;
-        double res1 = ((Math.abs(xc-x))*(Math.abs(xc-x)) +
-                ((Math.abs(yc-y))*Math.abs(yc-y)));
-        double res2 = Math.sqrt(res1)*0.14;
-        double res3 = res2/1500;
-        double result = Math.toDegrees(res3);
-        
-        
+   
+
+  
+    //Calculates zenith angle to a point in image !!! Needs to check the flying altitude
+    public double getZenithAngle(double x, double y){
+        double xc = xo;
+        double yc = yo;
+        double res1 = Math.sqrt(Math.pow(x-xc, 2) + Math.pow(y-yc, 2));
+        System.out.println(res1);
+        double res2 = Math.tan(res1/zo);
+        double result = Math.toDegrees(res2);
         return result;
     }
 
@@ -158,7 +214,7 @@ public class Image_HDR {
         double y = this.yo;
         return new double[]{x, y};
     }
-    //Affine tranformation from cameracoordinates to imagecoordinates
+    //Affine transformation from cameracoordinates to imagecoordinates
     public double[] a_transform_affine2(double x, double y) {
 
         //From camera coordinates to image coordinates -> pixels

@@ -1,4 +1,5 @@
 package imagereader;
+// From Aarne Hovi's program
 
 public class HyytialaCoordinateConversion {
 

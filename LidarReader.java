@@ -1,9 +1,5 @@
-
 package imagereader;
-/*
-Logic and *readLidarRecord* and *readPoint3D* from this class is from Aarne Hovi's program, 
-I have made refactoring and changed packages.
-*/
+
 import java.io.File;
 
 import java.io.FileInputStream;
@@ -15,6 +11,7 @@ import java.util.Collections;
 import java.util.*;
 
 public class LidarReader {
+
     private String filepath;
     private ArrayList<LidarInfo> lidarLista;
     private ArrayList<Point3D> firstEchoes;
@@ -25,23 +22,24 @@ public class LidarReader {
         this.firstEchoes = new ArrayList<>();
 
     }
-    
-    public void print()throws IOException{
+
+    public void print() throws IOException {
         ArrayList<LidarInfo> lista = this.lidarLista;
-        
+
         int i = 0;
-        
-        for(LidarInfo point : lista){
+
+        for (LidarInfo point : lista) {
             //System.out.println(point.returns[3].getX() + " " + point.returns[3].getY());
             double tulos = point.returns[3].getX();
             System.out.println(tulos);
-            if(tulos > 10){
+            if (tulos > 10) {
                 int p = 10 + 2;
             }
             i++;
         }
         System.out.println(i);
     }
+
     public double getPercentiles(double percentile) throws IOException {
 
         ArrayList<Double> number_list_1 = new ArrayList<>();
@@ -58,7 +56,7 @@ public class LidarReader {
         }
         Collections.sort(number_list_1);
         int rank = (int) Math.floor((percentile * 100 / 100 * (number_list_1.size())));
-        
+
         return number_list_1.get(rank);
     }
 
@@ -89,112 +87,104 @@ public class LidarReader {
             System.out.println("Virhe: " + e.getMessage());
         }
     }
-    public ArrayList<LidarInfo> getLidar(){
+
+    public ArrayList<LidarInfo> getLidar() {
         return this.lidarLista;
     }
-    public void getFirstEchoes(){
-        
+
+    public void getFirstEchoes() {
+
         ArrayList<Point3D> firstEchoes = new ArrayList<>();
-        
+
         int n = this.lidarLista.size();
-        for(int i = 0; i < n; i++){
-           this.firstEchoes.add(this.lidarLista.get(i).returns[3]);
+        for (int i = 0; i < n; i++) {
+            this.firstEchoes.add(this.lidarLista.get(i).returns[3]);
         }
         System.out.println(this.firstEchoes.size());
 
     }
-    
-    static class SortbyDist implements Comparator<LidarInfo>{
-        
+
+    static class SortbyDist implements Comparator<LidarInfo> {
+
         @Override
-        public int compare(LidarInfo x, LidarInfo y){
+        public int compare(LidarInfo x, LidarInfo y) {
             return Double.compare(x.dist, y.dist);
-            
+
         }
     }
-    
-    public double getNClosest(double x, double y, int nn, int echo){
+
+    public double getNClosest(double x, double y, int nn, int echo) {
 
         int n = this.lidarLista.size();
 
-        for(int i = 0; i < n; i++){
-           double x_lidar = this.lidarLista.get(i).returns[echo].getX();
-           double y_lidar = this.lidarLista.get(i).returns[echo].getY();
-           double dist = Math.sqrt(Math.pow((x_lidar - x),2) + Math.pow((y_lidar-y),2));
-           this.lidarLista.get(i).dist = dist;
+        for (int i = 0; i < n; i++) {
+            double x_lidar = this.lidarLista.get(i).returns[echo].getX();
+            double y_lidar = this.lidarLista.get(i).returns[echo].getY();
+            double dist = Math.sqrt(Math.pow((x_lidar - x), 2) + Math.pow((y_lidar - y), 2));
+            this.lidarLista.get(i).dist = dist;
         }
-        
-        //Collections.sort(lidarLista, new SortbyDist());
 
+        //Collections.sort(lidarLista, new SortbyDist());
         double result = 0;
-        for(int j = 0; j < nn; j++){
+        for (int j = 0; j < nn; j++) {
             result += this.lidarLista.get(j).returns[echo].getZ();
         }
 
-       return result / nn;      
+        return result / nn;
     }
-    
-    public double getFirstEchoesMinX(){
-        
-       
-        
+
+    public double getFirstEchoesMinX() {
+
         int n = firstEchoes.size();
         double min_x = 100000000;
-        for(int i = 0; i < n; i++){
-           if(firstEchoes.get(i).getX() < min_x){
-               min_x = firstEchoes.get(i).getX();
-           }
+        for (int i = 0; i < n; i++) {
+            if (firstEchoes.get(i).getX() < min_x) {
+                min_x = firstEchoes.get(i).getX();
+            }
         }
 
         return min_x;
     }
-    
-    public double getFirstEchoesMaxX(){
 
-        
+    public double getFirstEchoesMaxX() {
+
         int n = firstEchoes.size();
         double max_x = 0;
-        for(int i = 0; i < n; i++){
-           if(firstEchoes.get(i).getX() > max_x){
-               max_x = firstEchoes.get(i).getX();
-           }
+        for (int i = 0; i < n; i++) {
+            if (firstEchoes.get(i).getX() > max_x) {
+                max_x = firstEchoes.get(i).getX();
+            }
         }
 
         return max_x;
-        
+
     }
-    
-        public double getFirstEchoesMinY(){
-        
-        
-        
+
+    public double getFirstEchoesMinY() {
+
         int n = firstEchoes.size();
         double min_y = 1000000000;
-        for(int i = 0; i < n; i++){
-           if(firstEchoes.get(i).getY() < min_y){
-               min_y = firstEchoes.get(i).getY();
-           }
+        for (int i = 0; i < n; i++) {
+            if (firstEchoes.get(i).getY() < min_y) {
+                min_y = firstEchoes.get(i).getY();
+            }
         }
 
         return min_y;
     }
-    
-    public double getFirstEchoesMaxY(){
-        
-    
-        
+
+    public double getFirstEchoesMaxY() {
+
         int n = firstEchoes.size();
         double max_y = 0;
-        for(int i = 0; i < n; i++){
-           if(firstEchoes.get(i).getY() > max_y){
-               max_y = firstEchoes.get(i).getY();
-           }
+        for (int i = 0; i < n; i++) {
+            if (firstEchoes.get(i).getY() > max_y) {
+                max_y = firstEchoes.get(i).getY();
+            }
         }
 
         return max_y;
     }
-    
- 
 
     public static LidarInfo readLidarRecord(ByteBuffer in) throws IOException {
 
